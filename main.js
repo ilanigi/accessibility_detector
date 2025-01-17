@@ -96,7 +96,14 @@ function hasEventListeners(element) {
     "keydown",
     "keyup",
     "keypress",
-    "touchstart",
+  const noneInteractiveElements = new Set([
+    "HTML", "HEAD", "BODY", "SCRIPT", "STYLE",
+    "META", "TITLE", "LINK", "FORM",
+  ]);
+  
+  const filteredElements = [];
+  for (const el of elements) {
+    const isInteractive touchstart",
   ];
 
   if (
