@@ -8,31 +8,26 @@ function findNonKeyboardAccessibleInteractiveElements() {
   elements = filterNotVisibleElements(elements);
   console.log(elements.length);
 
-  elements = filterNoneBuildInAccessibleElements(elements);
+  elements = filterNoneBuiltInAccessibleElements(elements);
   console.log(elements.length);
 
-  let looksInteractiveElements = elements.filter(looksInteractive);
-  console.log(looksInteractiveElements.length);
-
-  let functionalInteractiveElements = looksInteractiveElements.filter(
-    hasEventListeners
-  );
-  console.log(functionalInteractiveElements.length);
-
+  elements = elements.filter((el) => filterLooksInteractive(el) || hasEventListeners(el));
+  console.log(elements.length);
   
+  elements = elements.filter((el) => !isKeyboardAccessible(el));
+  console.log(elements.length);
+
   return elements;
 }
 
 function filterNotVisibleElements(elements) {
-  elements = elements.filter(
+  return elements.filter(
     (el) =>
       el.style.display !== "none" &&
       el.style.visibility !== "hidden" &&
       !el.hidden
   );
-  return elements;
 }
-
 function filterNonInteractiveElements(elements) {
   const noneInteractiveElements = new Set([
     "HTML",
@@ -45,12 +40,12 @@ function filterNonInteractiveElements(elements) {
     "LINK",
     "FORM",
   ]);
-  elements = elements.filter((el) => !noneInteractiveElements.has(el.tagName));
-  return elements;
+  return elements.filter((el) => !noneInteractiveElements.has(el.tagName));
 }
 
-function filterNoneBuildInAccessibleElements(elements) {
-  const noneKeyboardAccessibleElements = new Set([
+
+function filterNoneBuiltInAccessibleElements(elements) {
+  const nativelyKeyboardAccessible = new Set([
     "BUTTON",
     "INPUT",
     "SELECT",
@@ -59,29 +54,38 @@ function filterNoneBuildInAccessibleElements(elements) {
     "OPTION",
     "LABEL",
     "IFRAME",
+    "HREF",
   ]);
-  elements = elements.filter(
-    (el) => !noneKeyboardAccessibleElements.has(el.tagName)
+  return elements.filter(
+    (el) => !nativelyKeyboardAccessible.has(el.tagName)
   );
-  return elements;
 }
 
-function looksInteractive(element) {
+
+function filterLooksInteractive(element) {
   const buttonTexts = ["click", "submit", "start", "go", "buy", "add", "order"];
-  return (
-    ["pointer"].includes(element.style.cursor) ||
-    element.className.includes("button") ||
-    element.className.includes("btn") ||
-    element.className.includes("interactive") ||
-    element.className.includes("link") ||
-    element.className.includes("tab") ||
-    element.className.includes("tab-item") ||
-    element.className.includes("tab-button") ||
-    element.className.includes("tab-button-text") ||
-    element.hasAttribute("data-button") ||
-    element.hasAttribute("data-interactive") ||
-    buttonTexts.some((text) => element.textContent.toLowerCase().includes(text))
-  );
+  
+  
+  const classList = element.className.split(/\s+/).filter(Boolean);  
+  if (element.style.cursor === "pointer") return true;
+  if (
+    classList.some((cls) =>
+      /button|btn|interactive|clickable|cta|link|tab(-item|-button)?/i.test(cls)
+    )
+  ) {
+    return true;
+  }
+
+  if (element.hasAttribute("data-button") || element.hasAttribute("data-interactive")) {
+    return true;
+  }
+
+  const lowerText = element.textContent.trim().toLowerCase();
+  if (buttonTexts.some((txt) => lowerText.includes(txt))) {
+    return true;
+  }
+
+  return false;
 }
 
 function hasEventListeners(element) {
@@ -94,10 +98,28 @@ function hasEventListeners(element) {
     "keypress",
     "touchstart",
   ];
-  return (
-    possibleEvents.some((evt) => typeof element[`on${evt}`] === "function") ||
-    (getEventListeners(element)[evt] || []).length > 0
-  );
+
+  if (
+    possibleEvents.some((evt) => typeof element[`on${evt}`] === "function")
+  ) {
+    return true;
+  }
+
+  try {
+    return possibleEvents.some((evt) => {
+      const listeners = getEventListeners(element)[evt] || [];
+      return listeners.length > 0;
+    });
+  } catch (e) {
+    return false;
+  }
 }
 
-findNonKeyboardAccessibleInteractiveElements();
+
+function isKeyboardAccessible(el) {
+  if (el.tabIndex >= 0) {
+    return true;
+  }
+
+  return false;
+}
