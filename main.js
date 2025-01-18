@@ -1,7 +1,6 @@
 let classificationData = [];
 
-
-
+/** this is for debugging in the browser */
 function printClassificationData(elementId) {
   const filteredData = classificationData.filter(
     (info) => info.id === elementId
@@ -57,7 +56,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return filteredElements;
   }
-  
   function filterNoneBuiltInAccessibleElements(elements) {
     const nativelyKeyboardAccessible = new Set([
       "BUTTON",
@@ -82,7 +80,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
   
     return filteredElements;
   }
-  
   function filterVisibleElements(elements) {
     const filteredElements = [];
     for (const el of elements) {
@@ -104,7 +101,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return filteredElements;
   }
-
   function filterNotKeyboardAccessible(elements) {
     const filteredElements = [];
     for (const el of elements) {
@@ -114,7 +110,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return filteredElements;
   }
-  
   function filterIterativeOrLooksLike(elements) {
     const filteredElements = [];
     for (const el of elements) {
@@ -127,7 +122,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return filteredElements;
   }
-  
   function hasRelatedRoles(el) {
     const hasRole =
       el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
@@ -140,7 +134,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return hasRole;
   }
-  
   function hasEventListeners(element) {
     const possibleEvents = [
       "click",
@@ -170,7 +163,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
       return false;
     }
   }
-  
   function isKeyboardAccessible(el) {
     const hasHandler = hasKeydownHandler(el);
     const isTabbable = el.tabIndex >= 0;
@@ -185,7 +177,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
     }
     return isTabbable && hasHandler;
   }
-  
   function hasKeydownHandler(el) {
     if (typeof el.onkeydown === "function") {
       logClassification(el, "has keydown event listener", "kept");
@@ -220,9 +211,6 @@ module.exports.findNonKeyboardAccessibleInteractiveElements = function () {
   const baseElements = baseFilter(elements);
   const iterativeElements = filterIterativeOrLooksLike(baseElements);
   const nonKeyboardAccessibleElements = filterNotKeyboardAccessible(iterativeElements);
-  for (const element of nonKeyboardAccessibleElements) {
-    console.log(elementId(element));
-  }
   return nonKeyboardAccessibleElements;
   
   
