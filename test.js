@@ -17,8 +17,14 @@ const fs = require("fs");
     await page.addScriptTag({
       content: `{${runExperiment}}`,
     });
-    const csv = await page.evaluate(runExperiment);
-    fs.writeFileSync(`results/${test}-${Date.now()}.csv`, csv.map((row) => row.join(",")).join("\n")); 
+    console.log("########## running experiment: " + test + " ##########");
+    page.on("console", (msg) => {
+      console.log(msg.text());
+    });
+
+    const {csv, classificationData} = await page.evaluate(runExperiment);
+    fs.writeFileSync(`results/${test}-results-${Date.now()}.csv`, csv.map((row) => row.join(",")).join("\n")); 
+    fs.writeFileSync(`results/${test}-classification-${Date.now()}.csv`, classificationData.map((row) => row.join(",")).join("\n"));
     await browser.close();
   }
 })();
