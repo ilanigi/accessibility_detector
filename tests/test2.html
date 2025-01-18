@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fake Button Detector</title>
+    <style>
+      .button-like {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-block;
+        margin: 5px 0;
+      }
+      .flagged {
+        outline: 2px solid red !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Fake Button Detector</h1>
+    <button onclick="alert('I am a real button!')">Real Button</button>
+
+    <!-- Looks like a button (styles) but no actual role, click, etc. -->
+    <div class="button-like" id="fakeBtn1">Fake Button #1</div>
+
+    <!-- Looks like a button, has a click handler (so it DOES have some functionality) -->
+    <div
+      class="button-like"
+      onclick="alert('At least I do something!')"
+      id="fakeBtn2"
+      unaccessible
+    >
+      Fake Button #2 (Has Click)
+    </div>
+
+    <!-- Has role="button" and is focusable, so it is accessible even if it's a div -->
+    <div
+      class="button-like"
+      tabindex="0"
+      role="button"
+      onclick="alert('Keyboard & mouse accessible!')"
+      id="accessibleDiv"
+      unaccessible
+    >
+      Accessible Div
+    </div>
+
+    <!-- Another "fake" button with no functionality -->
+    <span class="btn" id="fakeBtn3">Fake Button #3</span>
+
+    <ul id="results"></ul>
+  </body>
+</html>
