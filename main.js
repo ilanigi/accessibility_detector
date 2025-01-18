@@ -22,15 +22,13 @@ function printClassificationData(elementId) {
 }
 
 function findNonKeyboardAccessibleInteractiveElements() {
-  classificationData = [];
-
   let elements = Array.from(document.querySelectorAll("*"));
   console.log(elements.length);
 
-  elements = filterNonInteractiveElements(elements);
+  elements = filterInteractiveElements(elements);
   console.log(elements.length);
 
-  elements = filterNotVisibleElements(elements);
+  elements = filterVisibleElements(elements);
   console.log(elements.length);
 
   elements = filterNoneBuiltInAccessibleElements(elements);
@@ -51,15 +49,7 @@ function findNonKeyboardAccessibleInteractiveElements() {
 function filterKeyboardAccessible(elements) {
   const filteredElements = [];
   for (const el of elements) {
-    const notKeyboardAccessible = !isKeyboardAccessible(el);
-    logClassification(
-      el,
-      notKeyboardAccessible
-        ? "Not keyboard accessible"
-        : "Is keyboard accessible",
-      notKeyboardAccessible ? "kept" : "filtered"
-    );
-    if (notKeyboardAccessible) {
+    if (!isKeyboardAccessible(el)) {
       filteredElements.push(el);
     }
   }
@@ -70,12 +60,11 @@ function filterIterativeOrLooksLike(elements) {
   const filteredElements = [];
   for (const el of elements) {
     const hasListeners = hasEventListeners(el) && "has event listeners";
-    const looksInteractive = filterLooksInteractive(el) && "looks interactive";
     const hasRelatedRole =
       el.hasAttribute("role") &&
       ["button", "link", "tab"].includes(el.role) &&
       "has related role";
-    const isInteractive = hasListeners || looksInteractive || hasRelatedRole;
+    const isInteractive = hasListeners || hasRelatedRole;
     logClassification(el, isInteractive, isInteractive ? "kept" : "filtered");
     if (isInteractive) {
       filteredElements.push(el);
@@ -84,7 +73,7 @@ function filterIterativeOrLooksLike(elements) {
   return filteredElements;
 }
 
-function filterNotVisibleElements(elements) {
+function filterVisibleElements(elements) {
   const filteredElements = [];
   for (const el of elements) {
     const isVisible =
@@ -105,7 +94,7 @@ function filterNotVisibleElements(elements) {
   return filteredElements;
 }
 
-function filterNonInteractiveElements(elements) {
+function filterInteractiveElements(elements) {
   const noneInteractiveElements = new Set([
     "HTML",
     "HEAD",
@@ -167,44 +156,38 @@ function filterNoneBuiltInAccessibleElements(elements) {
   return filteredElements;
 }
 
-function filterLooksInteractive(element) {
-  if (element.style.cursor === "pointer") {
-    logClassification(element, "has cursor pointer", "kept");
-    return true;
-  }
+// function filterLooksInteractive(element) {
+//   if (element.style.cursor === "pointer") {
+//     logClassification(element, "has cursor pointer", "kept");
+//     return true;
+//   }
 
-  const classList =
-    (!!element?.className?.split &&
-      element.className.split(/\s+/).filter(Boolean)) ||
-    [];
-  if (classList.some((cls) => /btn|interactive|clickable|cta/i.test(cls))) {
-    // in log explain exactly which class name is matching
-    logClassification(
-      element,
-      `has class name: ${classList
-        .filter((cls) => /btn|interactive|clickable|cta/i.test(cls))
-        .join(", ")}`,
-      "kept"
-    );
-    return true;
-  }
+//   const classList =
+//     (!!element?.className?.split &&
+//       element.className.split(/\s+/).filter(Boolean)) ||
+//     [];
+//   if (classList.some((cls) => /btn|interactive|clickable|cta/i.test(cls))) {
+    
+//     logClassification(
+//       element,
+//       `has class name: ${classList
+//         .filter((cls) => /btn|interactive|clickable|cta/i.test(cls))
+//         .join(", ")}`,
+//       "kept"
+//     );
+//     return true;
+//   }
 
-  if (
-    element.hasAttribute("data-button") ||
-    element.hasAttribute("data-interactive")
-  ) {
-    logClassification(element, "has data attribute", "kept");
-    return true;
-  }
+//   if (
+//     element.hasAttribute("data-button") ||
+//     element.hasAttribute("data-interactive")
+//   ) {
+//     logClassification(element, "has data attribute", "kept");
+//     return true;
+//   }
 
-  // const lowerText = element.textContent.trim().toLowerCase();
-  // if (buttonTexts.some((txt) => lowerText.includes(txt))) {
-  //   logClassification(element, "has button text", "kept");
-  //   return true;
-  // }
-
-  return false;
-}
+//   return false;
+// }
 
 function hasEventListeners(element) {
   const possibleEvents = [
@@ -236,7 +219,18 @@ function hasEventListeners(element) {
 }
 
 function isKeyboardAccessible(el) {
-  return el.tabIndex >= 0 && hasKeydownHandler(el);
+  const hasHandler = hasKeydownHandler(el);
+  const isTabbable = el.tabIndex >= 0;
+  if (!isTabbable) {
+    logClassification(el, "Not tabbable", "kept");
+  }
+  if (!hasHandler) {
+    logClassification(el, "No keydown event listener", "kept");
+  }
+  if (isTabbable && hasHandler) {
+    logClassification(el, "Is keyboard accessible", "filtered");
+  }
+  return isTabbable && hasHandler;
 }
 
 function hasKeydownHandler(el) {
@@ -246,6 +240,7 @@ function hasKeydownHandler(el) {
   }
   try {
     const keydown = getEventListeners(el).keydown || [];
+    logClassification(el, "event listeners", keydown.join(", "));
     if (keydown.length > 0) {
       logClassification(
         el,
