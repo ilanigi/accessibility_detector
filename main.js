@@ -22,6 +22,7 @@ function printClassificationData(elementId) {
 }
 
 function findNonKeyboardAccessibleInteractiveElements() {
+  classificationData = [];
   let elements = Array.from(document.querySelectorAll("*"));
   console.log(elements.length);
   elements = baseFilter(elements);
@@ -55,6 +56,7 @@ function filterInteractiveElements(elements) {
     "TITLE",
     "LINK",
     "FORM",
+    "UL"
   ]);
 
   const filteredElements = [];
@@ -62,9 +64,7 @@ function filterInteractiveElements(elements) {
     const isInteractive = !noneInteractiveElements.has(el.tagName);
     logClassification(
       el,
-      isInteractive
-        ? "Interactive element type"
-        : "Non-interactive element type",
+      "element type: " + el.tagName,
       isInteractive ? "kept" : "filtered"
     );
     if (isInteractive) {
@@ -102,9 +102,10 @@ function filterNoneBuiltInAccessibleElements(elements) {
 function filterVisibleElements(elements) {
   const filteredElements = [];
   for (const el of elements) {
+    const style = getComputedStyle(el);
     const isVisible =
-      el.style.display !== "none" &&
-      el.style.visibility !== "hidden" &&
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
       !el.hidden;
 
     logClassification(
@@ -241,7 +242,7 @@ function hasKeydownHandler(el) {
   }
   try {
     const keydown = getEventListeners(el).keydown || [];
-    logClassification(el, "event listeners", keydown.join(", "));
+    logClassification(el, "(LOG) - event listeners: ", keydown.join(", "));
     if (keydown.length > 0) {
       logClassification(
         el,
