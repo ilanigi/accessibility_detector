@@ -72,6 +72,7 @@ function runExperiment() {
       return filteredElements;
     }
     function filterVisibleElements(elements) {
+      // TODO - can remove all children of hidden elements
       const filteredElements = [];
       for (const el of elements) {
         const style = getComputedStyle(el);
@@ -92,27 +93,7 @@ function runExperiment() {
       }
       return filteredElements;
     }
-    function filterNotKeyboardAccessible(elements) {
-      const filteredElements = [];
-      for (const el of elements) {
-        if (!isKeyboardAccessible(el)) {
-          filteredElements.push(el);
-        }
-      }
-      return filteredElements;
-    }
-    function filterIterativeOrLooksLike(elements) {
-      const filteredElements = [];
-      for (const el of elements) {
-        const hasListeners = hasEventListeners(el);
-        const hasRelatedRole = hasRelatedRoles(el);
     
-        if (hasListeners || hasRelatedRole) {
-          filteredElements.push(el);
-        }
-      }
-      return filteredElements;
-    }
     function hasRelatedRoles(el) {
       const hasRole =
         el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
@@ -141,19 +122,7 @@ function runExperiment() {
         return true;
       }
     
-      try {
-        return possibleEvents.some((evt) => {
-          const listeners = getEventListeners(element)[evt] || [];
-          if (listeners.length > 0) {
-            logClassification(element, `has ${evt} event listener`, "kept");
-            return true;
-          }
-          return false;
-        });
-      } catch (e) {
-        logClassification(element, "Failed to get event listeners", "filtered");
-        return false;
-      }
+      
     }
     function isKeyboardAccessible(el) {
       const hasHandler = hasKeydownHandler(el);
@@ -174,36 +143,18 @@ function runExperiment() {
         logClassification(el, "has keydown event listener", "kept");
         return true;
       }
-      try {
-        const keydown = getEventListeners(el).keydown || [];
-        if (keydown.length > 0) {
-          logClassification(
-            el,
-            `has keydown event listener: ${keydown
-              .map((listener) => listener.type)
-              .join(", ")}`,
-            "kept"
-          );
-          return true;
-        }
-        return false;
-      } catch {
-        logClassification(el, "Failed to get event listeners", "filtered");
-        return false;
-      }
     }
     
     
     classificationData = [["id", "reason", "action"]];
     let elements = Array.from(document.querySelectorAll("*"));
     const baseElements = baseFilter(elements);
-    const iterativeElements = filterIterativeOrLooksLike(baseElements);
-    const nonKeyboardAccessibleElements = filterNotKeyboardAccessible(iterativeElements);
+    const interactiveElements = baseElements.filter(el => hasEventListeners(el) || hasRelatedRoles(el));
+    const nonKeyboardAccessibleElements = interactiveElements.filter(el =>!isKeyboardAccessible(el));
     return nonKeyboardAccessibleElements
-     
+    
   }
   const elements = Array.from(document.querySelectorAll("*"));
-  
   const groundTruth = new Set (elements.filter((e) => e.hasAttribute('unaccessible')));
   const evaluatedElements = new Set(findNonKeyboardAccessibleInteractiveElements())
   
