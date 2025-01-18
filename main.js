@@ -25,10 +25,9 @@ function findNonKeyboardAccessibleInteractiveElements() {
   let elements = Array.from(document.querySelectorAll("*"));
   console.log(elements.length);
   elements = baseFilter(elements);
-
+  console.log(elements.length);
   elements = filterIterativeOrLooksLike(elements);
   console.log(elements.length);
-
   elements = filterKeyboardAccessible(elements);
   console.log(elements.length);
 
@@ -43,63 +42,6 @@ function baseFilter(elements) {
   elements = filterNoneBuiltInAccessibleElements(elements);
   elements = filterVisibleElements(elements);
   return elements;
-}
-
-function filterKeyboardAccessible(elements) {
-  const filteredElements = [];
-  for (const el of elements) {
-    if (!isKeyboardAccessible(el)) {
-      filteredElements.push(el);
-    }
-  }
-  return filteredElements;
-}
-
-function filterIterativeOrLooksLike(elements) {
-  const filteredElements = [];
-  for (const el of elements) {
-    const hasListeners = hasEventListeners(el);
-    const hasRelatedRole = hasRelatedRoles(el);
-
-    if (hasListeners || hasRelatedRole) {
-      filteredElements.push(el);
-    }
-  }
-  return filteredElements;
-}
-
-function hasRelatedRoles(el) {
-  const hasRole =
-    el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
-  if (hasRole) {
-    logClassification(
-      el,
-      hasRole ? "has related role" : "no related role",
-      hasRole ? "kept" : "filtered"
-    );
-  }
-  return hasRole;
-}
-
-function filterVisibleElements(elements) {
-  const filteredElements = [];
-  for (const el of elements) {
-    const isVisible =
-      el.style.display !== "none" &&
-      el.style.visibility !== "hidden" &&
-      !el.hidden;
-
-    logClassification(
-      el,
-      isVisible ? "Element is visible" : "Element is not visible",
-      isVisible ? "kept" : "filtered"
-    );
-
-    if (isVisible) {
-      filteredElements.push(el);
-    }
-  }
-  return filteredElements;
 }
 
 function filterInteractiveElements(elements) {
@@ -157,6 +99,27 @@ function filterNoneBuiltInAccessibleElements(elements) {
   return filteredElements;
 }
 
+function filterVisibleElements(elements) {
+  const filteredElements = [];
+  for (const el of elements) {
+    const isVisible =
+      el.style.display !== "none" &&
+      el.style.visibility !== "hidden" &&
+      !el.hidden;
+
+    logClassification(
+      el,
+      isVisible ? "Element is visible" : "Element is not visible",
+      isVisible ? "kept" : "filtered"
+    );
+
+    if (isVisible) {
+      filteredElements.push(el);
+    }
+  }
+  return filteredElements;
+}
+
 // function filterLooksInteractive(element) {
 //   if (element.style.cursor === "pointer") {
 //     logClassification(element, "has cursor pointer", "kept");
@@ -189,6 +152,42 @@ function filterNoneBuiltInAccessibleElements(elements) {
 
 //   return false;
 // }
+
+function filterKeyboardAccessible(elements) {
+  const filteredElements = [];
+  for (const el of elements) {
+    if (!isKeyboardAccessible(el)) {
+      filteredElements.push(el);
+    }
+  }
+  return filteredElements;
+}
+
+function filterIterativeOrLooksLike(elements) {
+  const filteredElements = [];
+  for (const el of elements) {
+    const hasListeners = hasEventListeners(el);
+    const hasRelatedRole = hasRelatedRoles(el);
+
+    if (hasListeners || hasRelatedRole) {
+      filteredElements.push(el);
+    }
+  }
+  return filteredElements;
+}
+
+function hasRelatedRoles(el) {
+  const hasRole =
+    el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
+  if (hasRole) {
+    logClassification(
+      el,
+      hasRole ? "has related role" : "no related role",
+      hasRole ? "kept" : "filtered"
+    );
+  }
+  return hasRole;
+}
 
 function hasEventListeners(element) {
   const possibleEvents = [
