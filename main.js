@@ -219,48 +219,47 @@ function runExperiment(threshold = 2) {
     ]);
   }
 
-  const truePositives = csv.filter(
+  const truePositive = csv.filter(
     (row) => row[1] === true && row[2] === true
   ).length;
-  const falsePositives = csv.filter(
+  const falsePositive = csv.filter(
     (row) => row[1] === false && row[2] === true
   ).length;
-  const falseNegatives = csv.filter(
+  const falseNegative = csv.filter(
     (row) => row[1] === true && row[2] === false
   ).length;
-  const trueNegatives = csv.filter(
+  const trueNegative = csv.filter(
     (row) => row[1] === false && row[2] === false
   ).length;
 
   const sensitivity =
-    truePositives + falseNegatives == 0
+    truePositive + falseNegative == 0
       ? 0
-      : (truePositives * 1.0) / (truePositives + falseNegatives);
+      : (truePositive * 1.0) / (truePositive + falseNegative);
   const specificity =
-    trueNegatives + falsePositives == 0
+    trueNegative + falsePositive == 0
       ? 0
-      : (trueNegatives * 1.0) / (trueNegatives + falsePositives);
+      : (trueNegative * 1.0) / (trueNegative + falsePositive);
   const precision =
-    truePositives + falsePositives == 0
+    truePositive + falsePositive == 0
       ? 0
-      : (truePositives * 1.0) / (truePositives + falsePositives);
+      : (truePositive * 1.0) / (truePositive + falsePositive);
   const f1Score =
     precision + sensitivity == 0
       ? 0
       : (2.0 * (precision * sensitivity)) / (precision + sensitivity);
-  
-  csv.push(["-", "-", "-"]);
-  csv.push(["true positive", truePositives]);
-  csv.push(["false positive", falsePositives]);
-  csv.push(["false negative", falseNegatives]);
-  csv.push(["true negative", trueNegatives]);
 
-  csv.push(["-", "-", "-"]);
-  csv.push(["sensitivity", sensitivity.toFixed(4)]);
-  csv.push(["specificity", specificity.toFixed(4)]);
-  csv.push(["precision", precision.toFixed(4)]);
-  csv.push(["f1 score", f1Score.toFixed(4)]);
-  return { csv, classificationData };
+  const scores = [
+    truePositive,
+    falsePositive,
+    falseNegative,
+    trueNegative,
+    sensitivity.toFixed(4),
+    specificity.toFixed(4),
+    precision.toFixed(4),
+    f1Score.toFixed(4),
+  ];
+  return { csv, classificationData, scores };
 }
 
 // const elements = findNonKeyboardAccessibleInteractiveElements();
