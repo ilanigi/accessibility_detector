@@ -29,3 +29,20 @@ node test.js
 
 
 ![ezgif-3-cc56fff050](https://github.com/user-attachments/assets/347964f0-a0e2-4527-a66f-773309131f07)
+
+
+## Results
+The experiment generates detailed results organized as follows:
+
+1. For each threshold value ( currently 2-7), a separate folder is created containing:
+   - Individual CSV files for each test case with detailed classification data
+   - Element-by-element analysis showing which were flagged as accessibility issues
+
+2. A consolidated results.csv file containing key metrics for each test/threshold combination:
+   - True/False Positives and Negatives
+   - Sensitivity (True Positive Rate)
+   - Specificity (True Negative Rate) 
+   - Precision
+   - F1 Score
+
+This allows for analyzing how different threshold values affect detection accuracy and comparing performance across test cases.
