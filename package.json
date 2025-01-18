@@ -1,0 +1,23 @@
+{
+  "name": "accesibility",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ilanigi/accessibility_detector.git"
+  },
+  "author": "gilad ilani",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ilanigi/accessibility_detector/issues"
+  },
+  "homepage": "https://github.com/ilanigi/accessibility_detector#readme",
+  "devDependencies": {},
+  "dependencies": {
+    "puppeteer": "^24.1.0"
+  }
+}
