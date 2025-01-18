@@ -24,15 +24,7 @@ function printClassificationData(elementId) {
 function findNonKeyboardAccessibleInteractiveElements() {
   let elements = Array.from(document.querySelectorAll("*"));
   console.log(elements.length);
-
-  elements = filterInteractiveElements(elements);
-  console.log(elements.length);
-
-  elements = filterVisibleElements(elements);
-  console.log(elements.length);
-
-  elements = filterNoneBuiltInAccessibleElements(elements);
-  console.log(elements.length);
+  elements = baseFilter(elements);
 
   elements = filterIterativeOrLooksLike(elements);
   console.log(elements.length);
@@ -44,6 +36,13 @@ function findNonKeyboardAccessibleInteractiveElements() {
     element: e,
     id: elementId(e),
   }));
+}
+
+function baseFilter(elements) {
+  elements = filterInteractiveElements(elements);
+  elements = filterNoneBuiltInAccessibleElements(elements);
+  elements = filterVisibleElements(elements);
+  return elements;
 }
 
 function filterKeyboardAccessible(elements) {
@@ -59,18 +58,27 @@ function filterKeyboardAccessible(elements) {
 function filterIterativeOrLooksLike(elements) {
   const filteredElements = [];
   for (const el of elements) {
-    const hasListeners = hasEventListeners(el) && "has event listeners";
-    const hasRelatedRole =
-      el.hasAttribute("role") &&
-      ["button", "link", "tab"].includes(el.role) &&
-      "has related role";
-    const isInteractive = hasListeners || hasRelatedRole;
-    logClassification(el, isInteractive, isInteractive ? "kept" : "filtered");
-    if (isInteractive) {
+    const hasListeners = hasEventListeners(el);
+    const hasRelatedRole = hasRelatedRoles(el);
+
+    if (hasListeners || hasRelatedRole) {
       filteredElements.push(el);
     }
   }
   return filteredElements;
+}
+
+function hasRelatedRoles(el) {
+  const hasRole =
+    el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
+  if (hasRole) {
+    logClassification(
+      el,
+      hasRole ? "has related role" : "no related role",
+      hasRole ? "kept" : "filtered"
+    );
+  }
+  return hasRole;
 }
 
 function filterVisibleElements(elements) {
@@ -141,13 +149,6 @@ function filterNoneBuiltInAccessibleElements(elements) {
 
   for (const el of elements) {
     const isNativelyAccessible = nativelyKeyboardAccessible.has(el.tagName);
-    logClassification(
-      el,
-      isNativelyAccessible
-        ? "Natively accessible element"
-        : "Not natively accessible",
-      isNativelyAccessible ? "filtered" : "kept"
-    );
     if (!isNativelyAccessible) {
       filteredElements.push(el);
     }
@@ -167,7 +168,7 @@ function filterNoneBuiltInAccessibleElements(elements) {
 //       element.className.split(/\s+/).filter(Boolean)) ||
 //     [];
 //   if (classList.some((cls) => /btn|interactive|clickable|cta/i.test(cls))) {
-    
+
 //     logClassification(
 //       element,
 //       `has class name: ${classList
@@ -210,6 +211,7 @@ function hasEventListeners(element) {
       const listeners = getEventListeners(element)[evt] || [];
       if (listeners.length > 0) {
         logClassification(element, `has ${evt} event listener`, "kept");
+        return true;
       }
       return false;
     });
