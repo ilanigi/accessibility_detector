@@ -1,13 +1,6 @@
 /** classificationData is for debugging in the browser */
 let classificationData = [];
-function printClassificationData(elementId) {
-  const filteredData = classificationData.filter(
-    (info) => info.id === elementId
-  );
-  for (const info of filteredData) {
-    console.log(info);
-  }
-}
+
 function runExperiment() {
   function elementId(element) {
     return `${element.tagName}-${element.id}-${element.className}`;
@@ -23,15 +16,8 @@ function runExperiment() {
 
     
     function logClassification(element, reason, action) {
-      const elementInfo = {
-        id: elementId(element),
-        tagName: element.tagName,
-        className: element.className,
-        reason: reason,
-        action: action,
-      };
-    
-      classificationData.push(elementInfo);
+      console.log(elementId(element), reason, action);
+      classificationData.push([elementId(element), reason, action]);
     }
     function filterInteractiveElements(elements) {
       const noneInteractiveElements = new Set([
@@ -165,6 +151,7 @@ function runExperiment() {
           return false;
         });
       } catch (e) {
+        logClassification(element, "Failed to get event listeners", "filtered");
         return false;
       }
     }
@@ -189,7 +176,6 @@ function runExperiment() {
       }
       try {
         const keydown = getEventListeners(el).keydown || [];
-        logClassification(el, "(LOG) - event listeners: ", keydown.join(", "));
         if (keydown.length > 0) {
           logClassification(
             el,
@@ -202,21 +188,18 @@ function runExperiment() {
         }
         return false;
       } catch {
+        logClassification(el, "Failed to get event listeners", "filtered");
         return false;
       }
     }
     
     
-    classificationData = [];
+    classificationData = [["id", "reason", "action"]];
     let elements = Array.from(document.querySelectorAll("*"));
-    console.log(elements.length);
     const baseElements = baseFilter(elements);
     const iterativeElements = filterIterativeOrLooksLike(baseElements);
     const nonKeyboardAccessibleElements = filterNotKeyboardAccessible(iterativeElements);
-    return nonKeyboardAccessibleElements.map((e) => ({
-      element: e,
-      id: elementId(e),
-    }));
+    return nonKeyboardAccessibleElements
      
   }
   const elements = Array.from(document.querySelectorAll("*"));
@@ -235,21 +218,22 @@ function runExperiment() {
   const falseNegatives = csv.filter((row) => row[1] === true && row[2] === false).length;
   const trueNegatives = csv.filter((row) => row[1] === false && row[2] === false).length;
 
-  const sensitivity =  truePositives / (truePositives + falseNegatives);
-  const specificity = trueNegatives / (trueNegatives + falsePositives);
-  const precision = truePositives / (truePositives + falsePositives);
-  const f1Score = 2 * (precision * sensitivity) / (precision + sensitivity);
+// 
+  const sensitivity =  truePositives + falseNegatives == 0 ? 0 : truePositives * 1.0 / (truePositives + falseNegatives);
+  const specificity = trueNegatives + falsePositives == 0 ? 0 : trueNegatives * 1.0 / (trueNegatives + falsePositives);
+  const precision = truePositives + falsePositives == 0 ? 0 : truePositives * 1.0 / (truePositives + falsePositives);
+  const f1Score = precision + sensitivity == 0 ? 0 : 2 * (precision * sensitivity) / (precision + sensitivity);
   
-  csv.push(["true positives", truePositives]);
-  csv.push(["false positives", falsePositives]);
-  csv.push(["false negatives", falseNegatives]);
-  csv.push(["true negatives", trueNegatives]);
+  csv.push(["true positive", truePositives]);
+  csv.push(["false positive", falsePositives]);
+  csv.push(["false negative", falseNegatives]);
+  csv.push(["true negative", trueNegatives]);
   
   csv.push(["sensitivity", sensitivity]);
   csv.push(["specificity", specificity]);
   csv.push(["precision", precision]);
   csv.push(["f1 score", f1Score]);
-  return csv;
+  return {csv, classificationData};
 }
 
 // const elements = findNonKeyboardAccessibleInteractiveElements();
