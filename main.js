@@ -1,11 +1,11 @@
 /** classificationData is for debugging in the browser */
 let classificationData = [];
 
-function runExperiment() {
+function runExperiment(threshold = 2) {
   function elementId(element) {
     return `${element.tagName}-${element.id}-${element.className}`;
   }
-  function findNonKeyboardAccessibleInteractiveElements() {
+  function findNonKeyboardAccessibleInteractiveElements(threshold = 2) {
     function baseFilter(elements) {
       elements = filterInteractiveElements(elements);
       elements = filterNoneBuiltInAccessibleElements(elements);
@@ -28,7 +28,7 @@ function runExperiment() {
         "TITLE",
         "LINK",
         "FORM",
-        "UL"
+        "UL",
       ]);
 
       const filteredElements = [];
@@ -91,7 +91,6 @@ function runExperiment() {
       }
       return filteredElements;
     }
-
     function hasRelatedRoles(el) {
       const hasRole =
         el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
@@ -143,7 +142,7 @@ function runExperiment() {
       }
     }
 
-    function looksInteractive(el) {
+    function looksInteractive(el, threshold = 2) {
       const style = getComputedStyle(el);
       const classList = el.className.toLowerCase().split(/\s+/);
       const text = el.textContent.toLowerCase();
@@ -177,14 +176,14 @@ function runExperiment() {
           score++;
         }
       }
-      const result = score > 2;
+      const result = score >= threshold;
       const reason = Object.entries(heuristicsDictionary)
         .filter(([key, value]) => value)
         .map(([key]) => key)
-        .join(", ");
+        .join("; ");
       logClassification(
         el,
-        "looks interactive, " + reason,
+        "looks interactive: " + reason,
         result ? "kept" : "filtered"
       );
       return result;
@@ -195,7 +194,7 @@ function runExperiment() {
     const baseElements = baseFilter(elements);
     const interactiveElements = baseElements.filter(
       (el) =>
-        hasRelatedRoles(el) || looksInteractive(el) || hasEventListeners(el) 
+        hasRelatedRoles(el) || looksInteractive(el) || hasEventListeners(el)
     );
     const nonKeyboardAccessibleElements = interactiveElements.filter(
       (el) => !isKeyboardAccessible(el)
@@ -208,7 +207,7 @@ function runExperiment() {
     elements.filter((e) => e.hasAttribute("unaccessible"))
   );
   const evaluatedElements = new Set(
-    findNonKeyboardAccessibleInteractiveElements()
+    findNonKeyboardAccessibleInteractiveElements(threshold)
   );
 
   const csv = [["id", "label", "evaluated label"]];
@@ -233,7 +232,6 @@ function runExperiment() {
     (row) => row[1] === false && row[2] === false
   ).length;
 
-  //
   const sensitivity =
     truePositives + falseNegatives == 0
       ? 0
@@ -249,17 +247,19 @@ function runExperiment() {
   const f1Score =
     precision + sensitivity == 0
       ? 0
-      : (2 * (precision * sensitivity)) / (precision + sensitivity);
-
+      : (2.0 * (precision * sensitivity)) / (precision + sensitivity);
+  
+  csv.push(["-", "-", "-"]);
   csv.push(["true positive", truePositives]);
   csv.push(["false positive", falsePositives]);
   csv.push(["false negative", falseNegatives]);
   csv.push(["true negative", trueNegatives]);
 
-  csv.push(["sensitivity", sensitivity]);
-  csv.push(["specificity", specificity]);
-  csv.push(["precision", precision]);
-  csv.push(["f1 score", f1Score]);
+  csv.push(["-", "-", "-"]);
+  csv.push(["sensitivity", sensitivity.toFixed(4)]);
+  csv.push(["specificity", specificity.toFixed(4)]);
+  csv.push(["precision", precision.toFixed(4)]);
+  csv.push(["f1 score", f1Score.toFixed(4)]);
   return { csv, classificationData };
 }
 

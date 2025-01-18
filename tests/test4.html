@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Elements Test with Radius Variations</title>
+  <style>
+    .button {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 10px 20px;
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+      border: 1px solid #007BFF;
+    }
+    .button.small-radius {
+      border-radius: 4px;
+    }
+    .button.medium-radius {
+      border-radius: 12px;
+    }
+    .button.large-radius {
+      border-radius: 50px;
+    }
+    .invisible {
+      display: none;
+    }
+    .decorative {
+      background-color: #ccc;
+      color: #666;
+      cursor: default;
+      border: 1px solid #aaa;
+    }
+    .focusable {
+      outline: 2px solid #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Elements Test with Radius Variations</h1>
+
+  <h2>Examples of Accessible and Non-Accessible Elements</h2>
+
+  <div id="test-elements">
+
+    <!-- Accessible examples -->
+    <button>Accessible Button</button>
+    <a href="#">Accessible Link</a>
+    <input type="text" placeholder="Accessible Input">
+    <div class="button small-radius" tabindex="0" role="button">Accessible Small Radius</div>
+    <div class="button medium-radius" tabindex="0" role="button">Accessible Medium Radius</div>
+    <div class="button large-radius" tabindex="0" role="button">Accessible Large Radius</div>
+
+    <!-- Not accessible but should be interactive -->
+    <div class="button small-radius" unaccessible>Small Radius Button</div>
+    <div class="button medium-radius" unaccessible>Medium Radius Button</div>
+    <div class="button large-radius" unaccessible>Large Radius Button</div>
+    <span class="button small-radius" unaccessible>Small Radius Span</span>
+    <span class="button medium-radius" unaccessible>Medium Radius Span</span>
+    <div class="button large-radius" unaccessible>No Tabindex or Role</div>
+
+    <!-- Non-interactive elements styled like buttons -->
+    <div class="decorative button small-radius" style="cursor: pointer;" unaccessible>Decorative Small Radius</div>
+    <div class="decorative button medium-radius" unaccessible>Styled Like Button</div>
+    <span class="decorative button large-radius" style="cursor: pointer;" unaccessible>No Interactivity</span>
+
+    <!-- Totally non-interactive -->
+    <div>Plain Text</div>
+    <span>Decorative Text</span>
+    <div class="invisible">Invisible Element</div>
+    <div class="focusable">Focus Outline But Not Focusable</div>
+
+    <!-- Dynamic Test Elements -->
+    <script>
+      const radii = ['small-radius', 'medium-radius', 'large-radius'];
+      for (let i = 1; i <= 80; i++) {
+        const div = document.createElement('div');
+        const radius = radii[i % radii.length]; // Cycle through radius classes
+
+        if (i % 2 === 0) {
+          // Accessible custom buttons
+          div.className = `button ${radius}`;
+          div.tabIndex = 0;
+          div.role = 'button';
+          div.textContent = `Accessible Custom Button #${i}`;
+        } else if (i % 3 === 0) {
+          // Not accessible, looks interactive
+          div.className = `button ${radius}`;
+          div.setAttribute('unaccessible', '');
+          div.textContent = `Not Accessible Button-Like Element #${i}`;
+        } else if (i % 5 === 0) {
+          // Styled like buttons but not interactive
+          div.className = `decorative button ${radius}`;
+          div.textContent = `Styled Button Without Interaction #${i}`;
+        } else {
+          // Totally non-interactive
+          div.textContent = `Plain Div #${i}`;
+        }
+
+        document.getElementById('test-elements').appendChild(div);
+      }
+    </script>
+  </div>
+</body>
+</html>

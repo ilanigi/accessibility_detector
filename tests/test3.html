@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Elements Test</title>
+  <style>
+    .button {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-block;
+      margin: 10px;
+    }
+    .invisible {
+      display: none;
+    }
+    .decorative {
+      background-color: #ccc;
+      color: #666;
+      cursor: default;
+    }
+    .focusable {
+      outline: 2px solid #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Elements Test</h1>
+
+  <h2>Examples of Accessible and Non-Accessible Elements</h2>
+
+  <div id="test-elements">
+
+    <!-- Accessible examples -->
+    <button>Accessible Button</button>
+    <a href="#">Accessible Link</a>
+    <input type="text" placeholder="Accessible Input">
+    <div class="button" tabindex="0" role="button">Accessible Custom Button</div>
+
+    <!-- Not accessible but should be interactive -->
+    <div class="button" unaccessible>Click Me</div>
+    <span class="button" unaccessible>Submit</span>
+    <div tabindex="-1" class="button" unaccessible>Tab Disabled</div>
+    <div style="cursor: pointer;" unaccessible>No Role or Tabindex</div>
+    <div class="focusable" tabindex="0" unaccessible>Focusable But No Role</div>
+
+    <!-- Non-interactive elements styled like buttons -->
+    <div class="decorative button" style="cursor: pointer;" unaccessible>Looks Like a Button</div>
+    <div class="decorative">Styled Like Button</div>
+    <span class="decorative button" style="cursor: pointer;" unaccessible>No Interactivity</span>
+
+    <!-- Totally non-interactive -->
+    <div>Plain Text</div>
+    <span>Decorative Text</span>
+    <div class="invisible">Invisible Element</div>
+    <div class="focusable">Focus Outline But Not Focusable</div>
+
+    <!-- Dynamic Test Elements -->
+    <script>
+      for (let i = 1; i <= 80; i++) {
+        const div = document.createElement('div');
+
+        if (i % 2 === 0) {
+          // Accessible custom buttons
+          div.className = 'button';
+          div.tabIndex = 0;
+          div.role = 'button';
+          div.textContent = `Accessible Custom Button #${i}`;
+        } else if (i % 3 === 0) {
+          // Not accessible, looks interactive
+          div.className = 'button';
+          div.setAttribute('unaccessible', '');
+          div.textContent = `Not Accessible Button-Like Element #${i}`;
+        } else if (i % 5 === 0) {
+          // Styled like buttons but not interactive
+          div.className = 'decorative button';
+          div.textContent = `Styled Button Without Interaction #${i}`;
+        } else {
+          // Totally non-interactive
+          div.textContent = `Plain Div #${i}`;
+        }
+
+        document.getElementById('test-elements').appendChild(div);
+      }
+    </script>
+  </div>
+</body>
+</html>
