@@ -13,8 +13,6 @@ function runExperiment() {
       return elements;
     }
 
-
-    
     function logClassification(element, reason, action) {
       console.log(elementId(element), reason, action);
       classificationData.push([elementId(element), reason, action]);
@@ -32,7 +30,7 @@ function runExperiment() {
         "FORM",
         "UL"
       ]);
-    
+
       const filteredElements = [];
       for (const el of elements) {
         const isInteractive = !noneInteractiveElements.has(el.tagName);
@@ -59,16 +57,16 @@ function runExperiment() {
         "IFRAME",
         "HREF",
       ]);
-    
+
       const filteredElements = [];
-    
+
       for (const el of elements) {
         const isNativelyAccessible = nativelyKeyboardAccessible.has(el.tagName);
         if (!isNativelyAccessible) {
           filteredElements.push(el);
         }
       }
-    
+
       return filteredElements;
     }
     function filterVisibleElements(elements) {
@@ -80,20 +78,20 @@ function runExperiment() {
           style.display !== "none" &&
           style.visibility !== "hidden" &&
           !el.hidden;
-    
+
         logClassification(
           el,
           isVisible ? "Element is visible" : "Element is not visible",
           isVisible ? "kept" : "filtered"
         );
-    
+
         if (isVisible) {
           filteredElements.push(el);
         }
       }
       return filteredElements;
     }
-    
+
     function hasRelatedRoles(el) {
       const hasRole =
         el.hasAttribute("role") && ["button", "link", "tab"].includes(el.role);
@@ -116,13 +114,13 @@ function runExperiment() {
         "keypress",
         "touchstart",
       ];
-    
-      if (possibleEvents.some((evt) => typeof element[`on${evt}`] === "function")) {
+
+      if (
+        possibleEvents.some((evt) => typeof element[`on${evt}`] === "function")
+      ) {
         logClassification(element, "has event listener", "kept");
         return true;
       }
-    
-      
     }
     function isKeyboardAccessible(el) {
       const hasHandler = hasKeydownHandler(el);
@@ -144,51 +142,129 @@ function runExperiment() {
         return true;
       }
     }
-    
-    
+
+    function looksInteractive(el) {
+      const style = getComputedStyle(el);
+      const classList = el.className.toLowerCase().split(/\s+/);
+      const text = el.textContent.toLowerCase();
+      const actionWords = [
+        "click",
+        "submit",
+        "buy",
+        "add",
+        "order",
+        "learn more",
+        "sign up",
+      ];
+
+      const heuristicsDictionary = {
+        backgroundIsNotTransparent:
+          style.backgroundColor !== "rgba(0, 0, 0, 0)",
+        hasPointerCursor: style.cursor === "pointer",
+        paddingEnough:
+          parseFloat(style.paddingLeft) > 5 ||
+          parseFloat(style.paddingRight) > 5,
+        hasRadius: parseFloat(style.borderRadius) > 0,
+        hasButtonClass: classList.some((cls) =>
+          /btn|button|clickable|interactive|cta|action/.test(cls)
+        ),
+        hasActionText: actionWords.some((w) => text.includes(w)),
+      };
+
+      let score = 0;
+      for (const value of Object.values(heuristicsDictionary)) {
+        if (value) {
+          score++;
+        }
+      }
+      const result = score > 2;
+      const reason = Object.entries(heuristicsDictionary)
+        .filter(([key, value]) => value)
+        .map(([key]) => key)
+        .join(", ");
+      logClassification(
+        el,
+        "looks interactive, " + reason,
+        result ? "kept" : "filtered"
+      );
+      return result;
+    }
+
     classificationData = [["id", "reason", "action"]];
     let elements = Array.from(document.querySelectorAll("*"));
     const baseElements = baseFilter(elements);
-    const interactiveElements = baseElements.filter(el => hasEventListeners(el) || hasRelatedRoles(el));
-    const nonKeyboardAccessibleElements = interactiveElements.filter(el =>!isKeyboardAccessible(el));
-    return nonKeyboardAccessibleElements
-    
+    const interactiveElements = baseElements.filter(
+      (el) =>
+        hasRelatedRoles(el) || looksInteractive(el) || hasEventListeners(el) 
+    );
+    const nonKeyboardAccessibleElements = interactiveElements.filter(
+      (el) => !isKeyboardAccessible(el)
+    );
+    return nonKeyboardAccessibleElements;
   }
+
   const elements = Array.from(document.querySelectorAll("*"));
-  const groundTruth = new Set (elements.filter((e) => e.hasAttribute('unaccessible')));
-  const evaluatedElements = new Set(findNonKeyboardAccessibleInteractiveElements())
-  
-  
+  const groundTruth = new Set(
+    elements.filter((e) => e.hasAttribute("unaccessible"))
+  );
+  const evaluatedElements = new Set(
+    findNonKeyboardAccessibleInteractiveElements()
+  );
+
   const csv = [["id", "label", "evaluated label"]];
   for (const element of elements) {
-    csv.push([elementId(element), groundTruth.has(element), evaluatedElements.has(element)]);
+    csv.push([
+      elementId(element),
+      groundTruth.has(element),
+      evaluatedElements.has(element),
+    ]);
   }
-  
-  const truePositives = csv.filter((row) => row[1] === true && row[2] === true).length;
-  const falsePositives = csv.filter((row) => row[1] === false && row[2] === true).length;
-  const falseNegatives = csv.filter((row) => row[1] === true && row[2] === false).length;
-  const trueNegatives = csv.filter((row) => row[1] === false && row[2] === false).length;
 
-// 
-  const sensitivity =  truePositives + falseNegatives == 0 ? 0 : truePositives * 1.0 / (truePositives + falseNegatives);
-  const specificity = trueNegatives + falsePositives == 0 ? 0 : trueNegatives * 1.0 / (trueNegatives + falsePositives);
-  const precision = truePositives + falsePositives == 0 ? 0 : truePositives * 1.0 / (truePositives + falsePositives);
-  const f1Score = precision + sensitivity == 0 ? 0 : 2 * (precision * sensitivity) / (precision + sensitivity);
-  
+  const truePositives = csv.filter(
+    (row) => row[1] === true && row[2] === true
+  ).length;
+  const falsePositives = csv.filter(
+    (row) => row[1] === false && row[2] === true
+  ).length;
+  const falseNegatives = csv.filter(
+    (row) => row[1] === true && row[2] === false
+  ).length;
+  const trueNegatives = csv.filter(
+    (row) => row[1] === false && row[2] === false
+  ).length;
+
+  //
+  const sensitivity =
+    truePositives + falseNegatives == 0
+      ? 0
+      : (truePositives * 1.0) / (truePositives + falseNegatives);
+  const specificity =
+    trueNegatives + falsePositives == 0
+      ? 0
+      : (trueNegatives * 1.0) / (trueNegatives + falsePositives);
+  const precision =
+    truePositives + falsePositives == 0
+      ? 0
+      : (truePositives * 1.0) / (truePositives + falsePositives);
+  const f1Score =
+    precision + sensitivity == 0
+      ? 0
+      : (2 * (precision * sensitivity)) / (precision + sensitivity);
+
   csv.push(["true positive", truePositives]);
   csv.push(["false positive", falsePositives]);
   csv.push(["false negative", falseNegatives]);
   csv.push(["true negative", trueNegatives]);
-  
+
   csv.push(["sensitivity", sensitivity]);
   csv.push(["specificity", specificity]);
   csv.push(["precision", precision]);
   csv.push(["f1 score", f1Score]);
-  return {csv, classificationData};
+  return { csv, classificationData };
 }
 
 // const elements = findNonKeyboardAccessibleInteractiveElements();
 
 module.exports = {
-  runExperiment
+  runExperiment,
 };
