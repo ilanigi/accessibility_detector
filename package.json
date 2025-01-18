@@ -16,7 +16,6 @@
     "url": "https://github.com/ilanigi/accessibility_detector/issues"
   },
   "homepage": "https://github.com/ilanigi/accessibility_detector#readme",
-  "devDependencies": {},
   "dependencies": {
     "puppeteer": "^24.1.0"
   }
