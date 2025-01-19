@@ -192,11 +192,11 @@ function runExperiment(threshold = 2) {
     classificationData = [["id", "reason", "action"]];
     let elements = Array.from(document.querySelectorAll("*"));
     const baseElements = baseFilter(elements);
-    const interactiveElements = baseElements.filter(
+    const looksInteractiveElements = baseElements.filter(
       (el) =>
         hasRelatedRoles(el) || looksInteractive(el) || hasEventListeners(el)
     );
-    const nonKeyboardAccessibleElements = interactiveElements.filter(
+    const nonKeyboardAccessibleElements = looksInteractiveElements.filter(
       (el) => !isKeyboardAccessible(el)
     );
     return nonKeyboardAccessibleElements;

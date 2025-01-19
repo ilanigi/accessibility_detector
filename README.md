@@ -24,7 +24,7 @@ npm i
 ### Running the Experiment
 
 ```
-node test.js
+node testRunner.js
 ```
 
 
@@ -34,7 +34,7 @@ node test.js
 ## Results
 The experiment generates detailed results organized as follows:
 
-1. For each threshold value ( currently 2-7), a separate folder is created containing:
+1. For each threshold value ( currently 2-6), a separate folder is created containing:
    - Individual CSV files for each test case with detailed classification data
    - Element-by-element analysis showing which were flagged as accessibility issues
 

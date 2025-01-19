@@ -7,7 +7,7 @@ const fs = require("fs");
   const tests = fs.readdirSync(path.join(process.cwd(), "tests"));
   const resultsFolder = `results/test-run-${Date.now()}`;
   fs.mkdirSync(resultsFolder, { recursive: true });
-  const thresholds = [ 2, 3, 4, 5, 6, 7];
+  const thresholds = [ 2, 3, 4, 5, 6];
   const results = [
     [
       "test",
