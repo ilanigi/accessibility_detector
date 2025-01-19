@@ -1,5 +1,3 @@
-# accessibility_detector
-
 # Accessibility Issue Detector
 This tool automatically detects potential accessibility issues in web pages by identifying interactive elements that are not properly keyboard accessible.
 
